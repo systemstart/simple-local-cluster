@@ -1,0 +1,79 @@
+services:
+  k3s:
+    # make sure to replace + with - from the
+    # original release tag
+    image: rancher/k3s:v1.32.0-k3s1
+    restart: unless-stopped
+    hostname: k3s
+    command: server
+    privileged: true
+    environment: {}
+      #- K3S_KUBECONFIG_MODE=666
+    volumes:
+    - ./k3s-data:/var/lib/rancher/k3s
+    - /etc/timezone:/etc/timezone:ro
+    configs:
+      - source: k3s-custom-dns
+        target: /etc/rancher/k3s/server/manifests/custom-dns.yaml
+
+    networks:
+      - backbone
+    ports:
+      - ${PRIVATE_IP:?}:6443:6443
+      - ${PUBLIC_IP:?}:443:443
+      - ${PUBLIC_IP:?}:80:80
+  dns:
+    image: coredns/coredns:latest
+    restart: unless-stopped
+    configs:
+      - source: coredns-corefile
+        target: /home/nonroot/Corefile
+      - source: coredns-zone
+        target: /home/nonroot/domain.zone
+    networks:
+      backbone:
+        ipv4_address: 10.10.8.99
+    ports:
+      - ${PRIVATE_IP:?}:1053:53/udp
+
+networks:
+  backbone:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.8.0/24
+          gateway: 10.10.8.1
+
+configs:
+  coredns-corefile:
+    content: |
+      ${DOMAIN:?}:53 {
+        file domain.zone
+        log
+      }
+  coredns-zone:
+    content: |
+      $$ORIGIN ${DOMAIN:?}.
+      $$TTL 3600
+      @	IN	SOA ${DOMAIN:?}. dns.${DOMAIN:?}. (
+                      20250001   ; serial
+                      7200       ; refresh (2 hours)
+                      3600       ; retry (1 hour)
+                      1209600    ; expire (2 weeks)
+                      3600       ; minimum (1 hour)
+      )
+
+      @     IN A     ${PUBLIC_IP:?}
+      *     IN A     ${PUBLIC_IP:?}
+  k3s-custom-dns:
+    content: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: coredns-custom
+        namespace: kube-system
+      data:
+        ${DOMAIN:?}.server: |
+          ${DOMAIN:?}:53 {
+            forward . 10.10.8.99
+          }    
