@@ -12,14 +12,14 @@ services:
     volumes:
     - k3s:/var/lib/rancher/k3s
     - /etc/timezone:/etc/timezone:ro
-    - ./manifests:/var/lib/rancher/k3s/server/manifests/custom
+    - ./manifests:/var/lib/rancher/k3s/server/manifests/custom-static
     configs:
       - source: k3s-custom-dns
-        target: /var/lib/rancher/k3s/server/manifests/custom/custom-dns.yaml
+        target: /var/lib/rancher/k3s/server/manifests/custom-dynamic/custom-dns.yaml
       - source: traefik-default-cert
-        target: /var/lib/rancher/k3s/server/manifests/custom/traefik-default-cert.yaml
+        target: /var/lib/rancher/k3s/server/manifests/custom-dynamic/traefik-default-cert.yaml
       - source: http-entry-ingress
-        target: /var/lib/rancher/k3s/server/manifests/custom/http-entry-ingress.yaml
+        target: /var/lib/rancher/k3s/server/manifests/custom-dynamic/http-entry-ingress.yaml
     networks:
       - backbone
     ports:
