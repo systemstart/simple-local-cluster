@@ -10,12 +10,16 @@ services:
     environment: {}
       #- K3S_KUBECONFIG_MODE=666
     volumes:
-    - ./k3s-data:/var/lib/rancher/k3s
+    - k3s:/var/lib/rancher/k3s
     - /etc/timezone:/etc/timezone:ro
+    - ./manifests:/var/lib/rancher/k3s/server/manifests/custom
     configs:
       - source: k3s-custom-dns
-        target: /etc/rancher/k3s/server/manifests/custom-dns.yaml
-
+        target: /var/lib/rancher/k3s/server/manifests/custom/custom-dns.yaml
+      - source: traefik-default-cert
+        target: /var/lib/rancher/k3s/server/manifests/custom/traefik-default-cert.yaml
+      - source: http-entry-ingress
+        target: /var/lib/rancher/k3s/server/manifests/custom/http-entry-ingress.yaml
     networks:
       - backbone
     ports:
@@ -43,6 +47,9 @@ networks:
       config:
         - subnet: 10.10.8.0/24
           gateway: 10.10.8.1
+
+volumes:
+  k3s: {}
 
 configs:
   coredns-corefile:
@@ -76,4 +83,40 @@ configs:
         ${DOMAIN:?}.server: |
           ${DOMAIN:?}:53 {
             forward . 10.10.8.99
-          }    
+          }
+  traefik-default-cert:
+    content: |
+      apiVersion: cert-manager.io/v1
+      kind: Certificate
+      metadata:
+        name: traefik-default-cert
+        namespace: kube-system
+      spec:
+        secretName: traefik-default-cert-tls
+        dnsNames:
+          - "${DOMAIN:?}"
+          - "*.${DOMAIN:?}"
+        issuerRef:
+          name: default-issuer
+          kind: ClusterIssuer
+  http-entry-ingress:
+    content: |
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: http-entry
+        namespace: http-entry
+        labels:
+          app.kubernetes.io/name: http-entry
+      spec:
+        rules:
+          - host: ${DOMAIN:?}
+            http:
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+                  backend:
+                    service:
+                      name: http-entry
+                      port:
+                        number: 80

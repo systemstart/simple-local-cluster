@@ -1,0 +1,104 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: http-entry
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: http-entry
+  namespace: http-entry
+  labels:
+    app.kubernetes.io/name: http-entry
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: http-entry
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: http-entry
+  namespace: http-entry
+  labels:
+    app.kubernetes.io/name: http-entry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: http-entry
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: http-entry
+    spec:
+      securityContext: {}
+      containers:
+        - name: nginx
+          securityContext: {}
+          image: "nginx:1"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources: {}
+          volumeMounts:
+            - name: root-ca-cert
+              readOnly: true
+              mountPath: /usr/share/nginx/html/ca.pem
+              subPath: ca.pem
+            - mountPath: /usr/share/nginx/html/index.html
+              name: nginx-config
+              readOnly: true
+              subPath: index.html
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config
+        - name: root-ca-cert
+          secret:
+            secretName: root-ca-cert
+---
+apiVersion: secretgen.carvel.dev/v1alpha1
+kind: SecretImport
+metadata:
+  name: root-ca-cert
+  namespace: http-entry
+spec:
+  fromNamespace: cert-manager
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: http-entry
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Welcome</title>
+        <style>
+          html { color-scheme: dark; }
+          body { width: 35em; margin: 0 auto; font-family: sans-serif; }
+        </style>
+      </head>
+      <body>
+        <h1>PKI</h1>
+        <a href="/ca.pem">Download Root CA Certificate</a>
+      </body>
+    </html>

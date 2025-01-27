@@ -1,6 +1,6 @@
 # Simple Local Cluster
 
-Easy-ish to use containerized cluster setup based on [k3s](https://k3s.io/).
+Easy-ish to use containerized cluster setup using [Docker Compose](https://docs.docker.com/compose/) and [k3s](https://k3s.io/).
 
 ### Table of Contents
 1. [Motivation](#motivation)
@@ -17,7 +17,7 @@ To do this there is many great options like [Kind](https://kind.sigs.k8s.io/), [
 
 **So why another option?**
 
-This repository offers a simple [Docker Compose]() based solution with these
+This repository offers a simple [Docker Compose](https://docs.docker.com/compose/) based solution with these
 features:
 
 * Direct access to app via port mapping, no additional Load Balancer needed
@@ -25,6 +25,14 @@ features:
 * Simple DNS Server
 
 # Usage
+
+## Prerequisites
+
+You will need:
+* [Docker](https://www.docker.com/)
+* [Docker Compose](https://docs.docker.com/compose/)
+* [Make](https://www.gnu.org/software/make/)
+* [kubectl](https://kubernetes.io/docs/reference/kubectl/)
 
 ## Configuration
 
@@ -85,6 +93,43 @@ DNS=127.0.0.1:1053#my-project.intern
 
 Start cluster with:
 ```
-docker compose up
+make up
 ```
 
+Check logs:
+```
+make tail
+```
+
+Get kubeconfig with:
+```
+make get-kubeconfig
+```
+
+Install 3rd party manifests(only need on first startup):
+```
+make install-3rdparty
+```
+
+Get pods:
+```
+kubectl --kubeconfig .kubeconfig get pods -A
+```
+
+## PKI
+
+If you point your browser at `http://$DOMAIN`(your domain name from `.env`, without HTTPS(!)), you will
+find a link to download the certificate of a CA used in the cluster for ingresses. This can be installed
+in the browser or some local certificate store.
+
+## Cleanup
+
+Run `make rm` to delete everything but the k3s server volume.
+
+## Troubleshooting
+
+If your kubeapi client runs into something like this:
+```
+Unable to connect to the server: tls: failed to verify certificate: x509: certificate signed by unknown authority
+```
+You might have a leftover `.kubeconfig` file, make sure to delete it manually and run `make get-kubeconfig` again.

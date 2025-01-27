@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: http-entry
+  namespace: http-entry
+  labels:
+    app.kubernetes.io/name: http-entry
+spec:
+  rules:
+    - host: my-project.intern
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: http-entry
+                port:
+                  number: 80
