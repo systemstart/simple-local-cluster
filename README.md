@@ -38,14 +38,15 @@ You will need:
 
 Copy [example.env](./example.env) to `.env` and change to fit your needs.
 
-You can probably use the defaults:
+These are the defaults:
 * `PRIVATE_IP=127.0.0.1`
  
     The [kubeapi](https://kubernetes.io/docs/reference/using-api/) is bound to this with port 6443 
 
-* `PUBLIC_IP=127.0.0.1`
+* `PUBLIC_IP=192.168.0.0`
 
-    This is the "public" facing IP to point your browser to when accessing App UIs running in the cluster
+    This is the "public" facing IP to point your browser to when accessing App UIs running in the cluster, your 
+    LAN/WLAN IP. **Note**: this can't be `127.0.0.1`.
 
 * `DOMAIN=my-project.intern`
 
