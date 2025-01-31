@@ -83,6 +83,15 @@ and/or consult your distro's documentation.
 
 ### `systemd-resolved`
 
+This will use `sudo` to write a file unter `/etc/systemd/resolved.conf.d/` and restart `systemd-resolved` via `systemctl`.
+
+As this writes into `/etc` with root permissions, make sure you check the 
+Makefile target.
+```
+make write-resolved-conf.d
+```
+
+This
 **This is (not yet) working**, see [systemd-resolved MR](https://github.com/systemd/systemd/pull/34368).
 
 Edit the file `/etc/systemd/resolved.conf`, find the `[Resolve]` block and add this

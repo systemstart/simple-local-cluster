@@ -41,3 +41,17 @@ $(KUBECONFIG):
 
 install-3rdparty: $(KUBECONFIG)
 	kubectl --kubeconfig $(KUBECONFIG) apply -f https://github.com/carvel-dev/secretgen-controller/releases/latest/download/release.yml
+
+define RESOLVED_CONF
+[Resolve]\n
+Domains=~$(DOMAIN)\n
+Cache=no\n
+DNS=$(PRIVATE_IP):1053%lo#$(DOMAIN)\n
+endef
+
+export RESOLVED_CONF
+write-resolved-conf.d:
+	sudo mkdir -p /etc/systemd/resolved.conf.d
+	echo $$RESOLVED_CONF | \
+		sudo tee /etc/systemd/resolved.conf.d/$(DOMAIN).conf 
+	sudo systemctl restart systemd-resolved
