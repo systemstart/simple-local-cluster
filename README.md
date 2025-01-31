@@ -83,6 +83,8 @@ and/or consult your distro's documentation.
 
 ### `systemd-resolved`
 
+**This is (not yet) working**, see [systemd-resolved MR](https://github.com/systemd/systemd/pull/34368).
+
 Edit the file `/etc/systemd/resolved.conf`, find the `[Resolve]` block and add this
 (fix to match your `DOMAIN` and `PUBLIC_IP`):
 
