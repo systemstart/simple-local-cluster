@@ -67,7 +67,7 @@ your Linux distro**. Make sure to consult its documentation if unsure.
 ### `dnsmasq`
 
 Create the file `/etc/dnsmasq.d/my-project.intern`(or what you set `DOMAIN` to), 
-with the following line(fix to match your `DOMAIN` and `PUBLIC_IP`):
+with the following line(fix to match your `DOMAIN` and `PRIVATE_IP`):
 
 ```
 server=/my-project.intern/127.0.0.1:1053
